@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sank — Modèle Conceptuel de Données (MCD)</title>
+    <!-- Police officielle de Sank (CDN, remplace system-ui sans faute) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "dark",
+        fontFamily: "Geist, system-ui, sans-serif",
+      });
+    </script>
+    <style>
+      /* Design system Sank : fond #0A0A0A, texte #FAFAFA, accents bleu rare */
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+        color: #fafafa;
+        font-family: "Geist", system-ui, sans-serif;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 24px 64px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 4px;
+      }
+      .sous {
+        color: #a1a1a1;
+        font-size: 14px;
+        margin: 0 0 24px;
+      }
+      .badge {
+        display: inline-block;
+        margin-left: 8px;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        background: rgba(37, 99, 235, 0.1);
+        color: #60a5fa;
+        border-radius: 999px;
+        font-size: 11px;
+        padding: 2px 10px;
+        vertical-align: middle;
+      }
+      .mcd {
+        background: #111113;
+        border: 1px solid rgba(250, 250, 250, 0.1);
+        border-radius: 8px;
+        padding: 24px;
+        overflow-x: auto;
+      }
+      .legende {
+        color: #a1a1a1;
+        font-size: 13px;
+        line-height: 1.7;
+        margin-top: 20px;
+      }
+      .legende b {
+        color: #fafafa;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Sank — Modèle Conceptuel de Données <span class="badge">V1</span></h1>
+      <p class="sous">
+        Corps du schéma verbatim : db/auth-schema.ts (Better Auth) + db/domaine.ts
+        (métier) — 1 directeur = 1 centre.
+      </p>
+
+      <div class="mcd">
+        <pre class="mermaid">
+erDiagram
+    user ||--o{ session : "possede"
+    user ||--o{ account : "s authentifie via"
+    user ||--o| centres : "detient"
+    centres ||--o{ documents : "regroupe"
+
+    user {
+        text id PK
+        text name
+        text email UK
+        boolean email_verified
+        timestamp created_at
+    }
+    session {
+        text id PK
+        text token UK
+        text user_id FK
+        timestamp expires_at
+    }
+    account {
+        text id PK
+        text provider_id
+        text account_id
+        text password
+        text user_id FK
+    }
+    verification {
+        text id PK
+        text identifier
+        text value
+        timestamp expires_at
+    }
+    centres {
+        uuid id PK
+        text nom
+        text user_id FK
+        timestamp created_at
+    }
+    documents {
+        uuid id PK
+        text nom_etudiant
+        text cours
+        text statut
+        uuid centre_id FK
+        timestamp created_at
+    }
+</pre>
+      </div>
+
+      <p class="legende">
+        <b>PK</b> = cle primaire · <b>FK</b> = cle etrangere · <b>UK</b> = champ unique<br />
+        <b>user</b>, <b>session</b>, <b>account</b>, <b>verification</b> : tables de
+        Better Auth (authentification) ·
+        <b>centres</b>, <b>documents</b> : tables metier de Sank.<br />
+        <b>centres.user_id</b> porte un index UNIQUE : un directeur ne detient qu'un
+        centre en V1 (le guide du staff reste possible plus tard).
+        <b>documents.statut</b> = "En attente" ou "Envoye" (contrainte applicative ;
+        la suppression d'un centre casse ses documents).<br />
+        <b>verification</b> n'a pas de FK : elle relie un email (identifier) a un code,
+        pour la verification d'adresse.
+      </p>
+    </div>
+  </body>
+</html>
